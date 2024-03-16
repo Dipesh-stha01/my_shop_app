@@ -19,9 +19,21 @@ class _AddItemPageState extends State<AddItemPage> {
   TextEditingController priceController = TextEditingController();
 
   File? productImage;
-  final gramList = ['250G', '500G', '1KG'];
-  final litreList = ['250ML', '500ML', '1L', '1.5L', '2L'];
-  final pieceList = ['1', '2', '3', '4', '5', '6', '1 Packet'];
+  final gramList = ['250G', '500G', '1KG', '1Piece'];
+  final litreList = ['250ML', '500ML', '1L', '1.5L', '2L', '1Bottle'];
+  final pieceList = [
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '1Packet',
+    '125G',
+    '250G',
+    '500G',
+    '1KG'
+  ];
   final categoryList = [
     ['Vegetables', 'assets/icons/vegetable.png'],
     ['Drinks', 'assets/icons/soda.png'],

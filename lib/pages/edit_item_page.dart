@@ -27,9 +27,21 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
   TextEditingController priceController = TextEditingController();
 
   File? productImage;
-  final gramList = ['250G', '500G', '1KG'];
-  final litreList = ['250ML', '500ML', '1L', '1.5L', '2L'];
-  final pieceList = ['1', '2', '3', '4', '5', '6', '1 Packet'];
+  final gramList = ['250G', '500G', '1KG', '1Piece'];
+  final litreList = ['250ML', '500ML', '1L', '1.5L', '2L', '1Bottle'];
+  final pieceList = [
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '1Packet',
+    '125G',
+    '250G',
+    '500G',
+    '1KG'
+  ];
   final categoryList = [
     ['Vegetables', 'assets/icons/vegetable.png'],
     ['Drinks', 'assets/icons/soda.png'],
@@ -37,23 +49,32 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
   ];
   late String selectedCategory;
   late String quantity;
+  late String gram;
   late String litre;
   late String piece;
 
   @override
   void initState() {
     selectedCategory = widget.category;
+    print('category: $selectedCategory');
     nameController.text = widget.name.toString();
     priceController.text = widget.price.toString();
-    quantity = widget.quantity;
-    litre = widget.quantity;
-    piece = widget.quantity;
+
+    gram = '';
+    litre = '';
+    piece = '';
     setState(() {
       if (selectedCategory == "Vegetables") {
-        quantity = widget.quantity;
+        gram = widget.quantity;
+        litre = litreList.first;
+        piece = pieceList.first;
       } else if (selectedCategory == "Drinks") {
+        gram = gramList.first;
         litre = widget.quantity;
+        piece = pieceList.first;
       } else {
+        gram = gramList.first;
+        litre = litreList.first;
         piece = widget.quantity;
       }
     });
@@ -123,6 +144,15 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
 
   uploadData() async {
     try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
+      );
       if (productImage != null) {
         UploadTask uploadTask = FirebaseStorage.instance
             .ref('Product Images')
@@ -139,12 +169,35 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
             'Price': priceController.text.toString(),
             'Image': url,
             'Category': selectedCategory,
-            'Quantity': quantity,
+            'Quantity': selectedCategory == "Vegetables"
+                ? gram
+                : selectedCategory == "Drinks"
+                    ? litre
+                    : piece,
           },
         ).then((value) {
+          // close the loading indicator
           Navigator.of(context).pop();
         });
+        // close the current page
+        Navigator.of(context).pop();
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Data updated successfully!"),
+          ),
+        );
       } else {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        );
         FirebaseFirestore.instance
             .collection('Products')
             .doc(nameController.text.toString())
@@ -153,11 +206,25 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
             'Name': nameController.text.toString(),
             'Price': priceController.text.toString(),
             'Category': selectedCategory,
-            'Quantity': quantity,
+            'Quantity': selectedCategory == "Vegetables"
+                ? gram
+                : selectedCategory == "Drinks"
+                    ? litre
+                    : piece,
           },
         ).then((value) {
+          // close the loading indicator
           Navigator.of(context).pop();
         });
+        // close the current page
+        Navigator.of(context).pop();
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Data updated successfully!"),
+          ),
+        );
       }
     } catch (ex) {
       return CustomWidgets.CustomAlertDialog(
@@ -269,10 +336,8 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
                           );
                         }).toList(),
                         onChanged: (value) {
-                          print(value);
                           setState(() {
                             selectedCategory = value.toString();
-                            print("selected category: ${value.toString()}");
                           });
                         },
                       ),
@@ -313,50 +378,42 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
                     ),
                     child: Center(
                       child: DropdownButton(
-                        underline: const Text(''),
-                        items: selectedCategory == 'Vegetables'
+                        value: selectedCategory == 'Vegetables'
+                            ? gram
+                            : selectedCategory == 'Drinks'
+                                ? litre
+                                : piece,
+                        items: selectedCategory == "Vegetables"
                             ? gramList.map((String value) {
                                 return DropdownMenuItem(
                                   value: value,
-                                  child: Text(
-                                    value,
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                    ),
-                                  ),
+                                  child: Text(value),
                                 );
                               }).toList()
-                            : selectedCategory == 'Drinks'
+                            : selectedCategory == "Drinks"
                                 ? litreList.map((String value) {
                                     return DropdownMenuItem(
                                       value: value,
-                                      child: Text(
-                                        value,
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                        ),
-                                      ),
+                                      child: Text(value),
                                     );
                                   }).toList()
-                                : pieceList.map((String value) {
-                                    return DropdownMenuItem(
+                                : pieceList
+                                    .map<DropdownMenuItem<String>>((value) {
+                                    return DropdownMenuItem<String>(
                                       value: value,
-                                      child: Text(
-                                        value,
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                        ),
-                                      ),
+                                      child: Text(value),
                                     );
                                   }).toList(),
-                        value: selectedCategory == "Vegetables"
-                            ? quantity
-                            : selectedCategory == "Drinks"
-                                ? litre
-                                : piece,
                         onChanged: (value) {
                           setState(() {
                             quantity = value.toString();
+                            if (selectedCategory == "Vegetables") {
+                              gram = value.toString();
+                            } else if (selectedCategory == "Drinks") {
+                              litre = value.toString();
+                            } else {
+                              piece = value.toString();
+                            }
                           });
                         },
                       ),
