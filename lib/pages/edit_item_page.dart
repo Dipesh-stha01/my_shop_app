@@ -144,16 +144,16 @@ class _UpdateItemPageState extends State<UpdateItemPage> {
 
   uploadData() async {
     try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
       if (productImage != null) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          },
+        );
         UploadTask uploadTask = FirebaseStorage.instance
             .ref('Product Images')
             .child(nameController.text.toString())
